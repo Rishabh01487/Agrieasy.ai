@@ -23,6 +23,7 @@ def main():
     ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--push", action="store_true")
     ap.add_argument("--hf-repo", default=None)
+    ap.add_argument("--load4bit", action="store_true", help="needs bitsandbytes (not preinstalled on Kaggle py3.13); default fp16 works for <=3B on T4")
     a = ap.parse_args()
 
     import torch
@@ -35,10 +36,14 @@ def main():
     tok = AutoTokenizer.from_pretrained(MODELS[a.model])
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
-    bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                             bnb_4bit_compute_dtype=torch.float16)
-    model = AutoModelForCausalLM.from_pretrained(
-        MODELS[a.model], quantization_config=bnb, device_map={"": 0}, torch_dtype=torch.float16)
+    if a.load4bit:
+        bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                                 bnb_4bit_compute_dtype=torch.float16)
+        model = AutoModelForCausalLM.from_pretrained(
+            MODELS[a.model], quantization_config=bnb, device_map={"": 0}, torch_dtype=torch.float16)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            MODELS[a.model], device_map={"": 0}, torch_dtype=torch.float16)
     model.config.use_cache = False
     model.gradient_checkpointing_enable()
     model.enable_input_require_grads()
