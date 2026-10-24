@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agrieasy.ai — Saathi</title>
+<meta name="description" content="AgriEasy Saathi — AI farm assistant: ask by voice or text, get week-by-week crop plans from sowing to selling on agrieasy.site.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F6F1E6">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agrieasy.ai">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div class="seal" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+      <path d="M12 21V9"/><path d="M12 13c0-3 2.5-5 6-5 0 3.5-2.5 5-6 5z"/><path d="M12 9c0-3-2.5-5-6-5 0 3.5 2.5 5 6 5z"/>
+    </svg>
+  </div>
+  <div class="wordmark"><b>Agrieasy</b><span>Farm Saathi · खेत का साथी</span></div>
+  <div class="spacer"></div>
+  <button id="tts" class="iconbtn" title="Voice replies on/off" aria-label="Voice replies">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18 6a8.5 8.5 0 0 1 0 12"/>
+    </svg>
+  </button>
+  <button id="install">Install</button>
+</header>
+
+<main>
+  <!-- ============ CHAT ============ -->
+  <section id="view-chat" class="view on">
+    <div id="mode-badge">Saathi · ready</div>
+    <div id="msgs" aria-live="polite"></div>
+
+    <div class="seeds">
+      <div class="kicker">Aaj kya poochhna hai · Ask today</div>
+      <button class="seed" data-q="Gehun ka poora plan banao — 2 acre, mid November boai">Gehun ka poora plan banao — 2 acre <span>&rarr;</span></button>
+      <button class="seed" data-q="AgriEasy par apni fasal kaise bechein aur payment kaise milegi?">AgriEasy par fasal kaise bechein <span>&rarr;</span></button>
+      <button class="seed" data-q="20 tarike se fasal aur kamai kaise badhayein?">Fasal aur kamai kaise badhayein <span>&rarr;</span></button>
+      <button class="seed" data-q="PM-KISAN, KCC aur PMFBY ki poori jankari">Sarkari yojnayein — PM-KISAN, KCC <span>&rarr;</span></button>
+    </div>
+
+    <div class="inputbar">
+      <button id="mic" aria-label="Bolkar poochhein · Speak" title="Bolkar poochhein">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>
+        </svg>
+      </button>
+      <textarea id="inp" rows="1" placeholder="Likhein ya mic daba kar boliye…"></textarea>
+      <button id="send" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+        </svg>
+      </button>
+    </div>
+    <p class="foot">Guidance is indicative — verify with your Kisan Kendra · pesticides as per label<br><b>Emergency:</b> pesticide sickness → 108 &nbsp;·&nbsp; Kisan Call Centre 1800-180-1551</p>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section id="view-plan" class="view">
+    <div class="kicker">Season brief</div>
+    <h2>Sowing to selling, dated.</h2>
+    <div class="brief">
+      <label>Crop<select id="p-crop"></select></label>
+      <label>Acres<input id="p-acres" type="number" min="0.1" step="0.1" value="2"></label>
+      <label>Sowing date<input id="p-date" type="date"></label>
+      <label>District<input id="p-dist" type="text" placeholder="e.g. Nashik"></label>
+      <div class="actions">
+        <button id="p-gen" class="btn primary">Make the plan</button>
+        <button id="p-print" class="btn ghost">Print</button>
+      </div>
+    </div>
+    <div id="plan-out"></div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="view-set" class="view">
+    <div class="kicker">Tuning</div>
+    <h2>Settings</h2>
+
+    <div class="card"><span class="no">01</span>
+      <h3>Voice</h3>
+      <p class="sub">Bolkar poochhein, sun kar samjhein.</p>
+      <label for="set-vlang">Speaking / listening language</label>
+      <select id="set-vlang">
+        <option value="auto">Auto-detect (Hindi / English)</option>
+        <option value="hi-IN">हिन्दी (hi-IN)</option>
+        <option value="en-IN">English (en-IN)</option>
+        <option value="mr-IN">मराठी (mr-IN)</option>
+        <option value="ta-IN">தமிழ் (ta-IN)</option>
+        <option value="te-IN">తెలుగు (te-IN)</option>
+        <option value="bn-IN">বাংলা (bn-IN)</option>
+      </select>
+      <label class="checkrow"><input type="checkbox" id="set-tts"> Reply out loud (voice answers)</label>
+      <label class="checkrow"><input type="checkbox" id="set-autosend" checked> Auto-send after I stop speaking</label>
+    </div>
+
+    <div class="card"><span class="no">02</span>
+      <h3>Answer engine</h3>
+      <p class="sub">AgriEasy Saathi always answers. This controls which engine is used.</p>
+      <label for="set-mode">Engine</label>
+      <select id="set-mode">
+        <option value="auto">Auto — AgriEasy engine (recommended)</option>
+        <option value="offline">AgriEasy notes — instant, always works</option>
+        <option value="webllm">In-app AI model — runs on the phone</option>
+        <option value="cloud">Cloud booster — optional, needs a key</option>
+      </select>
+      <p class="muted" id="gpu-note"></p>
+      <button id="dl-model" class="btn">Download AI model into the app (≈1 GB, one time)</button>
+    </div>
+
+    <div class="card"><span class="no">03</span>
+      <h3>Cloud booster (optional)</h3>
+      <p class="sub">Off unless you add a key. Sends difficult questions to a big external model for extra-sharp answers. Free key: console.groq.com — the key stays on this device.</p>
+      <label for="set-base">Base URL</label><input id="set-base" type="text">
+      <label for="set-key">API key</label><input id="set-key" type="password" placeholder="paste a free key to switch this on">
+      <label for="set-model">Model (leave blank = auto)</label><input id="set-model" type="text" placeholder="auto">
+      <p class="muted">If the provider blocks browser calls (CORS), run <code>local-api-proxy.js</code> from the app folder and set base URL to <code>http://127.0.0.1:8787/v1</code>.</p>
+    </div>
+
+    <div class="card"><span class="no">04</span>
+      <h3>AgriEasy trained model</h3>
+      <p class="sub">When our fine-tuning finishes, this points to AgriEasy's own model on Hugging Face.</p>
+      <label for="set-wllm">Model ID</label><input id="set-wllm" type="text">
+      <p class="muted">e.g. <code>hf://Rishabhthe1/agrieasy-ai-v1…</code> — see finetune/export_webllm.md</p>
+    </div>
+
+    <button id="save">Save settings</button>
+  </section>
+</main>
+
+<nav class="bottom">
+  <button class="on" data-v="view-chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></svg>
+    Saathi
+  </button>
+  <button data-v="view-plan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 14 2 2 4-4"/></svg>
+    Plan
+  </button>
+  <button data-v="view-set">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>
+    Settings
+  </button>
+</nav>
+
+<script src="kb.js"></script>
+<script src="plan.js"></script>
+<script src="app.js"></script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body>
+</html>

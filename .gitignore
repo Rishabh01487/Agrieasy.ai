@@ -1,0 +1,6 @@
+node_modules/
+*.pyc
+finetune/data/
+finetune/agrieasy-ai-v1/
+finetune/**/ckpt/
+.env
