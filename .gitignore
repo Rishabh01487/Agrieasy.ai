@@ -4,3 +4,5 @@ finetune/data/
 finetune/agrieasy-ai-v1/
 finetune/**/ckpt/
 .env
+finetune/kernel_log.json
+finetune/.kaggle_push_resp.json
