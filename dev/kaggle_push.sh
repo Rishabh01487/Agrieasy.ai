@@ -19,7 +19,7 @@ cp "$ROOT/finetune/Agrieasy_Finetune_Colab.ipynb" "$NB"
 sed -i "s|https://github.com/CHANGE-ME/agrieasy-ai|$REPO_URL|" "$NB"
 
 cd "$ROOT"
-REPO_URL="$REPO_URL" HF_TOKEN="$HF_TOKEN" HF_USER="$HF_USER" SLUG="$SLUG" KERNEL_ID="${KAGGLE_KERNEL_ID:-}" NB="finetune/.nb_patched.ipynb" PAYLOAD="finetune/.kaggle_payload.json" node -e '
+REPO_URL="$REPO_URL" HF_TOKEN="$HF_TOKEN" HF_USER="$HF_USER" SLUG="$SLUG" KERNEL_ID="${KAGGLE_KERNEL_ID:-}" MODEL_SRC="${KAGGLE_MODEL_SRC:-}" NB="finetune/.nb_patched.ipynb" PAYLOAD="finetune/.kaggle_payload.json" node -e '
 const fs = require("fs");
 const nbPath = process.env.NB, payPath = process.env.PAYLOAD;
 let nb = JSON.parse(fs.readFileSync(nbPath, "utf8"));
@@ -32,7 +32,8 @@ fs.writeFileSync(payPath, JSON.stringify(Object.assign({
   text: JSON.stringify(nb),
   language: "python", kernelType: "notebook",
   isPrivate: true, enableGpu: true, enableInternet: true,
-  datasetDataSources: [], competitionDataSources: [], kernelDataSources: [], modelDataSources: []
+  datasetDataSources: [], competitionDataSources: [], kernelDataSources: [],
+  modelDataSources: process.env.MODEL_SRC ? [process.env.MODEL_SRC] : []
 }, process.env.KERNEL_ID ? { id: Number(process.env.KERNEL_ID) } : {})));'
 
 echo "pushing kernel $SLUG ..."
