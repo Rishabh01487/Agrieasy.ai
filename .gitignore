@@ -6,3 +6,4 @@ finetune/**/ckpt/
 .env
 finetune/kernel_log.json
 finetune/.kaggle_push_resp.json
+finetune/modeldl/
