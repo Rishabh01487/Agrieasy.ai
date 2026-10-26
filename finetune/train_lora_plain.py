@@ -39,6 +39,18 @@ def main():
     import torch
     from transformers import (AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
                               Trainer, TrainingArguments, DataCollatorForLanguageModeling)
+    # peft reads torchao version from package metadata (0.10 on this image) and raises;
+    # torchao dispatch is only for quantized layers — force plain fp16 LoRA dispatch.
+    import importlib as _il
+    import peft.import_utils as _peft_iu
+    _peft_iu.is_torchao_available = lambda: False
+    for _mod in ("peft.tuners.lora.torchao", "peft.tuners.lora.model"):
+        try:
+            _m = _il.import_module(_mod)
+            if hasattr(_m, "is_torchao_available"):
+                _m.is_torchao_available = lambda: False
+        except Exception:
+            pass
     from peft import LoraConfig, get_peft_model
     from datasets import Dataset
 
