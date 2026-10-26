@@ -128,9 +128,9 @@
 
     <div class="card"><span class="no">04</span>
       <h3>AgriEasy trained model</h3>
-      <p class="sub">When our fine-tuning finishes, this points to AgriEasy's own model on Hugging Face.</p>
-      <label for="set-wllm">Model ID</label><input id="set-wllm" type="text">
-      <p class="muted">e.g. <code>hf://Rishabhthe1/agrieasy-ai-v1…</code> — see finetune/export_webllm.md</p>
+      <p class="sub">Our own fine-tune (v1) is live at <code>huggingface.co/Rishabhthe1/agrieasy-ai-v1</code> — trained on the AgriEasy knowledge base + farmer conversations.</p>
+      <label for="set-wllm">In-app model ID</label><input id="set-wllm" type="text">
+      <p class="muted">For the phone: paste a WebLLM build ID (stock: <code>Qwen2.5-1.5B-Instruct-q4f16_1-MLC</code>; our MLC-converted build after finetune/export_webllm.md step). For a server: point the cloud booster at any llama.cpp/vLLM endpoint serving the repo.</p>
     </div>
 
     <button id="save">Save settings</button>
