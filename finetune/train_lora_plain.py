@@ -5,6 +5,12 @@ Usage mirrors train_qlora.py."""
 import argparse, json, os, sys
 from pathlib import Path
 
+# Kaggle py3.13 image ships torchao 0.10 but transformers wants >0.16 (torchao is only
+# used for quantized loads — we train fp16). Neutralize it so transformers skips those paths.
+import types as _types
+sys.modules["torchao"] = _types.ModuleType("torchao")
+sys.modules["torchao"].__version__ = "0.19.0"
+
 MODELS = {
     "qwen1.5b": "Qwen/Qwen2.5-1.5B-Instruct",
     "qwen3b":   "Qwen/Qwen2.5-3B-Instruct",
@@ -44,10 +50,13 @@ def main():
         model = AutoModelForCausalLM.from_pretrained(
             base, quantization_config=bnb, device_map={"": 0}, torch_dtype=torch.float16)
     else:
-        model = AutoModelForCausalLM.from_pretrained(
-            base, device_map={"": 0}, torch_dtype=torch.float16)
+        model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.float16)
+        model = model.to("cuda")
     model.config.use_cache = False
-    model.gradient_checkpointing_enable()
+    try:
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    except TypeError:
+        model.gradient_checkpointing_enable()
     model.enable_input_require_grads()
     lcfg = LoraConfig(r=16, lora_alpha=16, lora_dropout=0, bias="none", task_type="CAUSAL_LM",
                       target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
