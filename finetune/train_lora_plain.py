@@ -97,13 +97,23 @@ def main():
     targs = dict(
         output_dir=str(Path(a.out) / "ckpt"), per_device_train_batch_size=a.batch,
         gradient_accumulation_steps=a.grad_accum, num_train_epochs=a.epochs,
-        learning_rate=a.lr, lr_scheduler_type="cosine", warmup_ratio=0.03,
-        logging_steps=5, eval_steps=50, save_steps=100, save_total_limit=1,
+        learning_rate=a.lr, lr_scheduler_type="cosine",
+        logging_steps=5, save_steps=100, save_total_limit=1,
         fp16=True, optim="adamw_torch", weight_decay=0.01, seed=3407, report_to="none")
-    try:
-        args = TrainingArguments(eval_strategy="steps" if val else "no", **targs)
-    except TypeError:  # older transformers
-        args = TrainingArguments(evaluation_strategy="steps" if val else "no", **targs)
+    # transformers renames/removes args between versions — pass only what this one accepts
+    import inspect
+    sig = inspect.signature(TrainingArguments.__init__).parameters
+    targs = {k: v for k, v in targs.items() if k in sig}
+    if "warmup_ratio" in sig:
+        targs["warmup_ratio"] = 0.03
+    for name in ("eval_strategy", "evaluation_strategy"):
+        if name in sig:
+            if val:
+                targs[name] = "steps"
+                if "eval_steps" in sig:
+                    targs["eval_steps"] = 50
+            break
+    args = TrainingArguments(**targs)
 
     trainer = Trainer(model=model, args=args, train_dataset=train, eval_dataset=val,
                       data_collator=DataCollatorForLanguageModeling(tok, mlm=False))
