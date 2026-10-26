@@ -5,9 +5,10 @@ window.App = (function () {
   const LS = "agrieasy.settings.v2";
   const settings = Object.assign(
     { mode: "auto", apiBase: "https://api.groq.com/openai/v1", apiKey: "", apiModel: "",
-      webllmModel: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", vlang: "auto", tts: false, autosend: true },
+      webllmModel: "AgriEasy-Saathi-v1-q4f16_1", vlang: "auto", tts: false, autosend: true },
     JSON.parse(localStorage.getItem(LS) || "{}"));
   const save = () => localStorage.setItem(LS, JSON.stringify(settings));
+  if (settings.webllmModel === "Qwen2.5-1.5B-Instruct-q4f16_1-MLC") settings.webllmModel = "AgriEasy-Saathi-v1-q4f16_1"; // migrate older installs
 
   let engine = null, engineModel = null, history = [];
 
@@ -144,6 +145,19 @@ window.App = (function () {
     if (engine && engineModel === settings.webllmModel) return engine;
     if (!hasWebGPU()) throw new Error("No WebGPU on this device/browser — use cloud or built-in notes mode (Chrome/Edge 113+, Android 12+).");
     const m = await import("https://esm.run/@mlc-ai/web-llm");
+    // register our fine-tuned build using the stock Qwen architecture library (same arch, different weights)
+    try {
+      const stock = m.prebuiltAppConfig.modelList.find(x => x.model_id === "Qwen2.5-1.5B-Instruct-q4f16_1-MLC");
+      if (stock && !m.prebuiltAppConfig.modelList.some(x => x.model_id === "AgriEasy-Saathi-v1-q4f16_1")) {
+        m.prebuiltAppConfig.modelList.push({
+          model: "https://huggingface.co/Rishabhthe1/agrieasy-ai-v1-q4f16_1-MLC/resolve/main/",
+          model_id: "AgriEasy-Saathi-v1-q4f16_1",
+          model_lib: stock.model_lib,
+          vram_required_MB: stock.vram_required_MB || 1100,
+          low_resource_required: true
+        });
+      }
+    } catch (e) {}
     engine = await m.CreateMLCEngine(settings.webllmModel, { initProgressCallback: p => onProgress && onProgress(p.text, (p.progress || 0) * 100) });
     engineModel = settings.webllmModel;
     return engine;
