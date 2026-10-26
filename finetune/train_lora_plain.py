@@ -7,9 +7,11 @@ from pathlib import Path
 
 # Kaggle py3.13 image ships torchao 0.10 but transformers wants >0.16 (torchao is only
 # used for quantized loads — we train fp16). Neutralize it so transformers skips those paths.
-import types as _types
-sys.modules["torchao"] = _types.ModuleType("torchao")
-sys.modules["torchao"].__version__ = "0.19.0"
+import types as _types, importlib.util as _ilu
+_m = _types.ModuleType("torchao")
+_m.__spec__ = _ilu.spec_from_loader("torchao", loader=None)
+_m.__version__ = "0.19.0"
+sys.modules["torchao"] = _m
 
 MODELS = {
     "qwen1.5b": "Qwen/Qwen2.5-1.5B-Instruct",
