@@ -81,9 +81,8 @@ def main():
     def to_text(ex):
         return {"text": tok.apply_chat_template(ex["messages"], tokenize=False)}
     def tok_fn(ex):
-        out = tok(ex["text"], truncation=True, max_length=a.max_len)
-        out["labels"] = list(out["input_ids"])
-        return out
+        # no manual labels — DataCollatorForLanguageModeling(mlm=False) builds padded labels itself
+        return tok(ex["text"], truncation=True, max_length=a.max_len)
 
     train = (Dataset.from_list([json.loads(l) for l in open(Path(a.data_dir) / "train.jsonl")])
              .map(to_text).map(tok_fn, remove_columns=["messages", "text"]))
